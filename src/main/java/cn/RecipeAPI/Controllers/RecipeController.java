@@ -46,6 +46,17 @@ public class RecipeController {
         }
     }
 
+    @GetMapping("/rating/{rating}")
+    public ResponseEntity<?> getRecipesByMinimumRating(@PathVariable("rating") int rating) {
+        try {
+            List<Recipe> matchingRecipes = recipeService.getAllRecipesWithMinimumAverageRating(rating);
+            return ResponseEntity.ok(matchingRecipes);
+        } catch (NoSuchRecipeException e) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(e.getMessage());
+        }
+    }
+
+
     @DeleteMapping("/{id}")
     public ResponseEntity<?> deleteRecipeById(@PathVariable("id") Long id) {
         try {
