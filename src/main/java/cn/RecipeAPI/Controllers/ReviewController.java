@@ -1,5 +1,6 @@
 package cn.RecipeAPI.Controllers;
 
+import cn.RecipeAPI.Exceptions.NoEmptyRatingException;
 import cn.RecipeAPI.Exceptions.NoSelfReviewException;
 import cn.RecipeAPI.Exceptions.NoSuchRecipeException;
 import cn.RecipeAPI.Exceptions.NoSuchReviewException;
@@ -53,7 +54,7 @@ public class ReviewController {
         try {
             Recipe insertedRecipe = reviewService.postNewReview(review, recipeId);
             return ResponseEntity.created(insertedRecipe.getLocationURI()).body(insertedRecipe);
-        } catch (NoSelfReviewException | NoSuchReviewException | NoSuchRecipeException e) {
+        } catch (NoEmptyRatingException | NoSelfReviewException | NoSuchReviewException | NoSuchRecipeException e) {
             return ResponseEntity.badRequest().body(e.getMessage());
         }
     }
