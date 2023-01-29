@@ -1,5 +1,6 @@
 package cn.RecipeAPI.Services;
 
+import cn.RecipeAPI.Exceptions.NoSelfReviewException;
 import cn.RecipeAPI.Exceptions.NoSuchRecipeException;
 import cn.RecipeAPI.Exceptions.NoSuchReviewException;
 import cn.RecipeAPI.Models.Recipe;
@@ -10,6 +11,7 @@ import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 import java.util.Optional;
 
 @Service
@@ -45,8 +47,11 @@ public class ReviewService {
         return reviews;
     }
 
-    public Recipe postNewReview(Review review, Long recipeId) throws NoSuchRecipeException, NoSuchReviewException {
+    public Recipe postNewReview(Review review, Long recipeId) throws NoSuchRecipeException, NoSuchReviewException, NoSelfReviewException {
         Recipe recipe = recipeService.getRecipeById(recipeId);
+        if (Objects.equals(review.getUsername(), recipe.getUsername())) {
+            throw new NoSelfReviewException("Hold on there partner. You can't review your own recipe.");
+        }
         recipe.getReviews().add(review);
         recipe.setAverageRating(calculateAverageRecipeRating(recipeId));  // Recalculate average every time a new review is added.
         recipeService.updateRecipe(recipe, false);
