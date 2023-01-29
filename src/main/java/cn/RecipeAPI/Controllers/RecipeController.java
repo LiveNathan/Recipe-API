@@ -46,6 +46,16 @@ public class RecipeController {
         }
     }
 
+    @GetMapping("/search/{name}/{difficulty}")
+    public ResponseEntity<?> getRecipeByName(@PathVariable String name, @PathVariable Integer difficulty) {
+        try {
+            List<Recipe> matchingRecipes = recipeService.getRecipesByNameAndDifficulty(name, difficulty);
+            return ResponseEntity.ok(matchingRecipes);
+        } catch (NoSuchRecipeException e) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(e.getMessage());
+        }
+    }
+
     @GetMapping("/rating/{rating}")
     public ResponseEntity<?> getRecipesByMinimumRating(@PathVariable("rating") int rating) {
         try {

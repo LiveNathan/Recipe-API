@@ -33,7 +33,15 @@ public class RecipeService {
     public List<Recipe> getRecipesByName(String name) throws NoSuchRecipeException {
         List<Recipe> matchingRecipes = recipeRepo.findByNameContainingIgnoreCase(name);
         if (matchingRecipes.isEmpty()) {
-            throw new NoSuchRecipeException("No recipes could be found with that name.");
+            throw new NoSuchRecipeException("No recipes could be found with that name and maximum difficulty.");
+        }
+        return matchingRecipes;
+    }
+
+    public List<Recipe> getRecipesByNameAndDifficulty(String name, Integer difficulty) throws NoSuchRecipeException {
+        List<Recipe> matchingRecipes = recipeRepo.findByNameContainingIgnoreCaseAndDifficultyRatingLessThanEqual(name, difficulty);
+        if (matchingRecipes.isEmpty()) {
+            throw new NoSuchRecipeException("No recipes could be found with that name and maximum difficulty.");
         }
         return matchingRecipes;
     }

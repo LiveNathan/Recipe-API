@@ -8,5 +8,7 @@ import java.util.List;
 public interface RecipeRepo extends JpaRepository<Recipe, Long> {
     List<Recipe> findByNameContainingIgnoreCase(String name);
 
+    List<Recipe> findByNameContainingIgnoreCaseAndDifficultyRatingLessThanEqual(String name, Integer difficultyRating);
+
     List<Recipe> findByAverageRatingGreaterThanEqual(int rating);
 }
