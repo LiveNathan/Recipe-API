@@ -27,7 +27,7 @@ public class ReviewController {
         }
     }
 
-    @GetMapping("/recipe/{id}")
+    @GetMapping("/recipe/{recipeId}")
     public ResponseEntity<?> getReviewByRecipeId(@PathVariable("recipeId") Long recipeId) {
         try {
             List<Review> reviews = reviewService.getReviewByRecipeId(recipeId);
