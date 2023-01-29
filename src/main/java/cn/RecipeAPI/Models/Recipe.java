@@ -25,6 +25,8 @@ public class Recipe {
     @Column
     private Long id;
 
+    private String username;  // User who submitted the recipe.
+
     @Column(nullable = false)
     private String name;
 
