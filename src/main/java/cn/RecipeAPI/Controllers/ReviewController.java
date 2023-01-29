@@ -52,7 +52,7 @@ public class ReviewController {
         try {
             Recipe insertedRecipe = reviewService.postNewReview(review, recipeId);
             return ResponseEntity.created(insertedRecipe.getLocationURI()).body(insertedRecipe);
-        } catch (NoSuchRecipeException e) {
+        } catch (NoSuchReviewException | NoSuchRecipeException e) {
             return ResponseEntity.badRequest().body(e.getMessage());
         }
     }

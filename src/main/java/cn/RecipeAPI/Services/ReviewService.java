@@ -45,11 +45,22 @@ public class ReviewService {
         return reviews;
     }
 
-    public Recipe postNewReview(Review review, Long recipeId) throws NoSuchRecipeException {
+    public Recipe postNewReview(Review review, Long recipeId) throws NoSuchRecipeException, NoSuchReviewException {
         Recipe recipe = recipeService.getRecipeById(recipeId);
         recipe.getReviews().add(review);
+        recipe.setAverageRating(calculateAverageRecipeRating(recipeId));  // Recalculate average every time a new review is added.
         recipeService.updateRecipe(recipe, false);
         return recipe;
+    }
+
+    public int calculateAverageRecipeRating(Long recipeId) throws NoSuchReviewException, NoSuchRecipeException {
+        ArrayList<Review> reviews = getReviewByRecipeId(recipeId);
+        ArrayList<Integer> ratings = new ArrayList<>();
+        for (Review review : reviews) {
+            ratings.add(review.getRating());
+        }
+        double averageRating = ratings.stream().mapToInt(val -> val).average().orElse(0.0);
+        return (int) Math.round(averageRating);
     }
 
     public Review deleteReviewById(Long id) throws NoSuchReviewException {

@@ -34,6 +34,8 @@ public class Recipe {
     @Column(nullable = false)
     private Integer difficultyRating;
 
+    private int averageRating;
+
     @OneToMany(cascade = CascadeType.ALL)
     @JoinColumn(name = "recipeId", nullable = false, foreignKey = @ForeignKey)
     private Collection<Ingredient> ingredients = new ArrayList<>();
