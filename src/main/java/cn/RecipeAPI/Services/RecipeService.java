@@ -82,7 +82,7 @@ public class RecipeService {
     }
 
     @Transactional
-    public  Recipe updateRecipe(Recipe recipe, boolean forceIdCheck) throws NoSuchRecipeException {
+    public Recipe updateRecipe(Recipe recipe, boolean forceIdCheck) throws NoSuchRecipeException {
         try {
             if (forceIdCheck) {
                 getRecipeById(recipe.getId());

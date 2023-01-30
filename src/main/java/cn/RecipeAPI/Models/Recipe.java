@@ -66,7 +66,7 @@ public class Recipe {
             throw new IllegalStateException("You have to have at least one ingredient for your recipe!");
         } else if (steps.size() == 0) {
             throw new IllegalStateException("You have to include at least one step for your recipe!");
-        } else if (name == null || minutesToMake == null || difficultyRating == null ) {  // This should catch null values.
+        } else if (name == null || minutesToMake == null || difficultyRating == null) {
             throw new IllegalStateException("Please make sure to include name, minutesToMake, and difficultyRating.");
         }
     }
