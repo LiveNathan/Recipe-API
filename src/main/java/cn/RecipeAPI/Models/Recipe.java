@@ -25,6 +25,8 @@ public class Recipe {
     @Column
     private Long id;
 
+    private String username;  // User who submitted the recipe.
+
     @Column(nullable = false)
     private String name;
 
@@ -33,6 +35,8 @@ public class Recipe {
 
     @Column(nullable = false)
     private Integer difficultyRating;
+
+    private int averageRating;
 
     @OneToMany(cascade = CascadeType.ALL)
     @JoinColumn(name = "recipeId", nullable = false, foreignKey = @ForeignKey)
@@ -62,6 +66,8 @@ public class Recipe {
             throw new IllegalStateException("You have to have at least one ingredient for your recipe!");
         } else if (steps.size() == 0) {
             throw new IllegalStateException("You have to include at least one step for your recipe!");
+        } else if (name == null || minutesToMake == null || difficultyRating == null) {
+            throw new IllegalStateException("Please make sure to include name, minutesToMake, and difficultyRating.");
         }
     }
 

@@ -1,5 +1,7 @@
 package cn.RecipeAPI.Services;
 
+import cn.RecipeAPI.Exceptions.NoEmptyRatingException;
+import cn.RecipeAPI.Exceptions.NoSelfReviewException;
 import cn.RecipeAPI.Exceptions.NoSuchRecipeException;
 import cn.RecipeAPI.Exceptions.NoSuchReviewException;
 import cn.RecipeAPI.Models.Recipe;
@@ -10,6 +12,7 @@ import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 import java.util.Optional;
 
 @Service
@@ -45,11 +48,28 @@ public class ReviewService {
         return reviews;
     }
 
-    public Recipe postNewReview(Review review, Long recipeId) throws NoSuchRecipeException {
+    public Recipe postNewReview(Review review, Long recipeId) throws NoSuchRecipeException, NoSuchReviewException, NoSelfReviewException, NoEmptyRatingException {
         Recipe recipe = recipeService.getRecipeById(recipeId);
+        if (Objects.equals(review.getUsername(), recipe.getUsername())) {
+            throw new NoSelfReviewException("Hold on there partner. You can't review your own recipe.");
+        }
+        if (review.getRating() == null) {
+            throw new NoEmptyRatingException("This review needs a rating!");
+        }
         recipe.getReviews().add(review);
+        recipe.setAverageRating(calculateAverageRecipeRating(recipeId));  // Recalculate average every time a new review is added.
         recipeService.updateRecipe(recipe, false);
         return recipe;
+    }
+
+    public int calculateAverageRecipeRating(Long recipeId) throws NoSuchReviewException, NoSuchRecipeException {
+        ArrayList<Review> reviews = getReviewByRecipeId(recipeId);
+        ArrayList<Integer> ratings = new ArrayList<>();
+        for (Review review : reviews) {
+            ratings.add(review.getRating());
+        }
+        double averageRating = ratings.stream().mapToInt(val -> val).average().orElse(0.0);
+        return (int) Math.round(averageRating);
     }
 
     public Review deleteReviewById(Long id) throws NoSuchReviewException {

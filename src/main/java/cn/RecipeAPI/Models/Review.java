@@ -23,16 +23,17 @@ public class Review {
     @NotNull
     private String username;
 
-    private int rating;
+    private Integer rating;
 
     @NotNull
     private String description;
 
-    public void setRating(int rating) {
+    public void setRating(Integer rating) {
         if (rating <= 0 || rating > 10) {
-            throw new IllegalStateException("Rating must be netween 0 and 10.");
+            throw new IllegalStateException("Rating must be Between 0 and 10.");  // This message never actually gets returned to the user.
         }
         this.rating = rating;
     }
+
 
 }

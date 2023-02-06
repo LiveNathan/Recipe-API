@@ -33,7 +33,23 @@ public class RecipeService {
     public List<Recipe> getRecipesByName(String name) throws NoSuchRecipeException {
         List<Recipe> matchingRecipes = recipeRepo.findByNameContainingIgnoreCase(name);
         if (matchingRecipes.isEmpty()) {
-            throw new NoSuchRecipeException("No recipes could be found with that name.");
+            throw new NoSuchRecipeException("No recipes could be found with that name and maximum difficulty.");
+        }
+        return matchingRecipes;
+    }
+
+    public List<Recipe> getRecipesByNameAndDifficulty(String name, Integer difficulty) throws NoSuchRecipeException {
+        List<Recipe> matchingRecipes = recipeRepo.findByNameContainingIgnoreCaseAndDifficultyRatingLessThanEqual(name, difficulty);
+        if (matchingRecipes.isEmpty()) {
+            throw new NoSuchRecipeException("No recipes could be found with that name and maximum difficulty.");
+        }
+        return matchingRecipes;
+    }
+
+    public List<Recipe> getRecipesByUsername(String name) throws NoSuchRecipeException {
+        List<Recipe> matchingRecipes = recipeRepo.findByUsername(name);
+        if (matchingRecipes.isEmpty()) {
+            throw new NoSuchRecipeException("No recipes could be found from that username.");
         }
         return matchingRecipes;
     }
@@ -42,6 +58,14 @@ public class RecipeService {
         List<Recipe> recipes = recipeRepo.findAll();
         if (recipes.isEmpty()) {
             throw new NoSuchRecipeException("No such recipe, yet. Feel free to add one.");
+        }
+        return recipes;
+    }
+
+    public List<Recipe> getAllRecipesWithMinimumAverageRating(int rating) throws NoSuchRecipeException {
+        List<Recipe> recipes = recipeRepo.findByAverageRatingGreaterThanEqual(rating);
+        if (recipes.isEmpty()) {
+            throw new NoSuchRecipeException("No recipes with this rating, yet. Please try a lower rating.");
         }
         return recipes;
     }
@@ -58,7 +82,7 @@ public class RecipeService {
     }
 
     @Transactional
-    public  Recipe updateRecipe(Recipe recipe, boolean forceIdCheck) throws NoSuchRecipeException {
+    public Recipe updateRecipe(Recipe recipe, boolean forceIdCheck) throws NoSuchRecipeException {
         try {
             if (forceIdCheck) {
                 getRecipeById(recipe.getId());
