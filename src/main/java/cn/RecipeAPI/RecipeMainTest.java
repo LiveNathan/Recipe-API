@@ -44,8 +44,8 @@ public class RecipeMainTest implements CommandLineRunner {
                     .username("bob")
                     .build();
 
-//            recipeRepo.save(recipe1);
-            recipeService.createNewRecipe(recipe1);
+            recipeRepo.save(recipe1);
+//            recipeService.createNewRecipe(recipe1);
 
             ingredient.setId(null);
             Recipe recipe2 = Recipe.builder()
