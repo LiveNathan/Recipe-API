@@ -2,6 +2,7 @@ package cn.RecipeAPI.Services;
 
 import cn.RecipeAPI.Exceptions.NoSuchRecipeException;
 import cn.RecipeAPI.Models.Recipe;
+import cn.RecipeAPI.Models.Review;
 import cn.RecipeAPI.Repositories.RecipeRepo;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -19,15 +20,18 @@ public class RecipeService {
     public Recipe createNewRecipe(Recipe recipe) throws IllegalStateException {
         recipe.validate();
         recipe = recipeRepo.save(recipe);
+        recipe.generateLocationURI();
         return recipe;
     }
 
     public Recipe getRecipeById(Long id) throws NoSuchRecipeException {
         Optional<Recipe> recipeOptional = recipeRepo.findById(id);
         if (recipeOptional.isEmpty()) {
-            throw new NoSuchRecipeException("No receipe with ID " + id + " could be found.");
+            throw new NoSuchRecipeException("No recipe with ID " + id + " could be found.");
         }
-        return recipeOptional.get();
+        Recipe recipe = recipeOptional.get();
+        recipe.generateLocationURI();
+        return recipe;
     }
 
     public List<Recipe> getRecipesByName(String name) throws NoSuchRecipeException {
@@ -35,7 +39,20 @@ public class RecipeService {
         if (matchingRecipes.isEmpty()) {
             throw new NoSuchRecipeException("No recipes could be found with that name and maximum difficulty.");
         }
+        for (Recipe recipe :
+                matchingRecipes) {
+            recipe.generateLocationURI();
+        }
+
         return matchingRecipes;
+    }
+
+    public Recipe getRecipeByReview(Review review) throws NoSuchRecipeException {
+        Optional<Recipe> recipeOptional = recipeRepo.findByReviews_Id(review.getId());
+        if (recipeOptional.isEmpty()) {
+            throw new NoSuchRecipeException("No recipe could be found with that review.");
+        }
+        return recipeOptional.get();
     }
 
     public List<Recipe> getRecipesByNameAndDifficulty(String name, Integer difficulty) throws NoSuchRecipeException {
@@ -57,7 +74,7 @@ public class RecipeService {
     public List<Recipe> getAllRecipes() throws NoSuchRecipeException {
         List<Recipe> recipes = recipeRepo.findAll();
         if (recipes.isEmpty()) {
-            throw new NoSuchRecipeException("No such recipe, yet. Feel free to add one.");
+            throw new NoSuchRecipeException("There are no recipes yet :( feel free to add one though");
         }
         return recipes;
     }
@@ -88,7 +105,9 @@ public class RecipeService {
                 getRecipeById(recipe.getId());
             }
             recipe.validate();
-            return recipeRepo.save(recipe);
+            Recipe savedRecipe = recipeRepo.save(recipe);
+            savedRecipe.generateLocationURI();
+            return savedRecipe;
         } catch (NoSuchRecipeException e) {
             throw new NoSuchRecipeException("Recipe ID not found. Maybe you meant to POST not PATCH?");
         }

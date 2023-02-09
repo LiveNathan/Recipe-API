@@ -17,12 +17,23 @@ public class RecipeController {
     RecipeService recipeService;
 
     @PostMapping
-    public ResponseEntity<?> crewNewRecipe(@RequestBody Recipe recipe) {
+    public ResponseEntity<?> createNewRecipe(@RequestBody Recipe recipe) {
         try {
             Recipe insertedRecipe = recipeService.createNewRecipe(recipe);
+//            insertedRecipe.generateLocationURI();
             return ResponseEntity.created(insertedRecipe.getLocationURI()).body(insertedRecipe);
         } catch (IllegalStateException e) {
             return ResponseEntity.badRequest().body(e.getMessage());
+        }
+    }
+
+    @GetMapping
+    public ResponseEntity<?> getAllRecipes() {
+        try {
+            List<Recipe> recipes = recipeService.getAllRecipes();
+            return ResponseEntity.ok(recipes);
+        } catch (NoSuchRecipeException e) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(e.getMessage());
         }
     }
 

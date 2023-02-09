@@ -6,6 +6,7 @@ import cn.RecipeAPI.Exceptions.NoSuchRecipeException;
 import cn.RecipeAPI.Exceptions.NoSuchReviewException;
 import cn.RecipeAPI.Models.Recipe;
 import cn.RecipeAPI.Models.Review;
+import cn.RecipeAPI.Repositories.RecipeRepo;
 import cn.RecipeAPI.Repositories.ReviewRepo;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -18,10 +19,13 @@ import java.util.Optional;
 @Service
 public class ReviewService {
     @Autowired
-    ReviewRepo reviewRepo;
+    private ReviewRepo reviewRepo;
 
     @Autowired
-    RecipeService recipeService;
+    private RecipeService recipeService;
+
+    @Autowired
+    private RecipeRepo recipeRepo;
 
     public Review getReviewById(Long id) throws NoSuchReviewException {
         Optional<Review> review = reviewRepo.findById(id);
@@ -72,22 +76,28 @@ public class ReviewService {
         return (int) Math.round(averageRating);
     }
 
-    public Review deleteReviewById(Long id) throws NoSuchReviewException {
+    public Review deleteReviewById(Long id) throws NoSuchReviewException, NoSuchRecipeException {
         Review review = getReviewById(id);
         if (review == null) {
             throw new NoSuchReviewException("The review you are trying to delete does not exist.");
         }
         reviewRepo.deleteById(id);
+
+        Recipe recipe = recipeService.getRecipeByReview(review);
+        recipe.setAverageRating(calculateAverageRecipeRating(recipe.getId()));
         return review;
     }
 
-    public Review updateReviewById(Review reviewToUpdate) throws NoSuchReviewException {
+    public Review updateReviewById(Review reviewToUpdate) throws NoSuchReviewException, NoSuchRecipeException {
         try {
             Review review = getReviewById(reviewToUpdate.getId());  // I think this verifies that the review exists.
         } catch (NoSuchReviewException e) {
             throw new NoSuchReviewException("Cannot find this review. Maybe you mean to update?");
         }
         reviewRepo.save(reviewToUpdate);
+
+        Recipe recipe = recipeService.getRecipeByReview(reviewToUpdate);
+        recipe.setAverageRating(calculateAverageRecipeRating(recipe.getId()));
         return reviewToUpdate;
     }
 }
