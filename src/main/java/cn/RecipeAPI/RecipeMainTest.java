@@ -14,7 +14,7 @@ import org.springframework.context.annotation.Profile;
 import java.util.Set;
 
 @SpringBootApplication
-@Profile("test")
+@Profile("test-repo")  // Changing this name temporarily mocking
 public class RecipeMainTest implements CommandLineRunner {
 
     @Autowired
@@ -56,8 +56,8 @@ public class RecipeMainTest implements CommandLineRunner {
                     .minutesToMake(2)
                     .username("Sally")
                     .build();
-//            recipeRepo.save(recipe2);
-            recipeService.createNewRecipe(recipe2);
+            recipeRepo.save(recipe2);
+//            recipeService.createNewRecipe(recipe2);
 
             Recipe recipe3 = Recipe.builder()
                     .steps(Set.of(Step.builder().description("test 2").build()))
