@@ -61,6 +61,7 @@ public class RecipeApiApplicationTests {
             .steps(Set.of(Step.builder().stepNumber(1).description("eat spam").build()))
             .locationURI(new URI("http://localhost:8080/recipes/1"))
             .reviews(Set.of(review))
+            .id(1L)
             .build();
 
     Recipe recipe2 = Recipe.builder().name("test name2").difficultyRating(2).minutesToMake(6)
@@ -68,6 +69,7 @@ public class RecipeApiApplicationTests {
             .steps(Set.of(Step.builder().stepNumber(1).description("crack egg").build()))
             .locationURI(new URI("http://localhost:8080/recipes/2"))
             .reviews(Set.of(review2))
+            .id(2L)
             .build();
 
     ArrayList<Recipe> recipes = new ArrayList<>(Arrays.asList(recipe, recipe2));
@@ -249,8 +251,8 @@ public class RecipeApiApplicationTests {
         //get the recipe with ID 1 for future error message confirmation
         mockMvc.perform(delete("/recipes/" + recipeId))
                 .andExpect(status().isOk())
-                //confirm correct recipe was returned
-                .andExpect(jsonPath("id").value(recipeId));
+                //confirm correct message was returned
+                .andExpect(content().string(containsString("deleted")));
     }
 
     @Test
