@@ -82,12 +82,10 @@ public class Recipe {
         }
     }
 
-//    @PostPersist  // Cannot be used during testing.
+    //    @PostPersist  // Cannot be used during testing.
     public void generateLocationURI() {
         try {
-//            locationURI = new URI(ServletUriComponentsBuilder.fromCurrentContextPath().path("/recipes/").path(String.valueOf(id)).toUriString());
-            locationURI = new URI(ServletUriComponentsBuilder.fromCurrentServletMapping().path("/recipes/").path(String.valueOf(id)).toUriString());
-//            locationURI = ServletUriComponentsBuilder.fromCurrentRequest().path("/recipes/").path(String.valueOf(id)).toUri();
+            locationURI = new URI(ServletUriComponentsBuilder.fromCurrentContextPath().path("/recipes/").path(String.valueOf(id)).toUriString());
         } catch (URISyntaxException e) {
             throw new IllegalStateException("Failed to generate location URI", e);
         }

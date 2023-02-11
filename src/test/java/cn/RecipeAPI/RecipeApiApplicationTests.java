@@ -39,9 +39,26 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @ActiveProfiles(profiles = "test")
 @TestMethodOrder(MethodOrderer.OrderAnnotation.class)
 public class RecipeApiApplicationTests {
+    // Create some test recipes
+    Review review = Review.builder().description("was just caramel").rating(3).username("idk").build();
+    Review review2 = Review.builder().description("was just egg").rating(4).username("idk").build();
+    Recipe recipe = Recipe.builder().name("test name").difficultyRating(1).minutesToMake(5)
+            .ingredients(Set.of(Ingredient.builder().name("spam").amount("1 can").build()))
+            .steps(Set.of(Step.builder().stepNumber(1).description("eat spam").build()))
+            .locationURI(new URI("http://localhost:8080/recipes/1"))
+            .reviews(Set.of(review))
+            .id(1L)
+            .build();
+    Recipe recipe2 = Recipe.builder().name("test name2").difficultyRating(2).minutesToMake(6)
+            .ingredients(Set.of(Ingredient.builder().name("egg").amount("1 egg").build()))
+            .steps(Set.of(Step.builder().stepNumber(1).description("crack egg").build()))
+            .locationURI(new URI("http://localhost:8080/recipes/2"))
+            .reviews(Set.of(review2))
+            .id(2L)
+            .build();
+    ArrayList<Recipe> recipes = new ArrayList<>(Arrays.asList(recipe, recipe2));
     @Autowired
     private MockMvc mockMvc;
-
     @MockBean
     private RecipeService recipeService;
 
@@ -51,28 +68,6 @@ public class RecipeApiApplicationTests {
     @Test
     void contextLoads() {
     }
-
-    // Create some test recipes
-    Review review = Review.builder().description("was just caramel").rating(3).username("idk").build();
-    Review review2 = Review.builder().description("was just egg").rating(4).username("idk").build();
-
-    Recipe recipe = Recipe.builder().name("test name").difficultyRating(1).minutesToMake(5)
-            .ingredients(Set.of(Ingredient.builder().name("spam").amount("1 can").build()))
-            .steps(Set.of(Step.builder().stepNumber(1).description("eat spam").build()))
-            .locationURI(new URI("http://localhost:8080/recipes/1"))
-            .reviews(Set.of(review))
-            .id(1L)
-            .build();
-
-    Recipe recipe2 = Recipe.builder().name("test name2").difficultyRating(2).minutesToMake(6)
-            .ingredients(Set.of(Ingredient.builder().name("egg").amount("1 egg").build()))
-            .steps(Set.of(Step.builder().stepNumber(1).description("crack egg").build()))
-            .locationURI(new URI("http://localhost:8080/recipes/2"))
-            .reviews(Set.of(review2))
-            .id(2L)
-            .build();
-
-    ArrayList<Recipe> recipes = new ArrayList<>(Arrays.asList(recipe, recipe2));
 
     @Order(1)
     @Test
