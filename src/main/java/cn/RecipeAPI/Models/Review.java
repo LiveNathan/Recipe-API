@@ -1,9 +1,6 @@
 package cn.RecipeAPI.Models;
 
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Data;
-import lombok.NoArgsConstructor;
+import lombok.*;
 
 import javax.persistence.*;
 import javax.validation.constraints.NotNull;
@@ -14,10 +11,12 @@ import javax.validation.constraints.NotNull;
 @Builder
 @AllArgsConstructor
 @NoArgsConstructor
+@Getter
+@Setter
 public class Review {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column
+    @Column(nullable = false)
     private Long id;
 
     @NotNull
@@ -28,8 +27,12 @@ public class Review {
     @NotNull
     private String description;
 
+//    @ManyToOne
+//    @JoinColumn(name = "recipe_id")
+//    private Recipe recipe;
+
     public void setRating(Integer rating) {
-        if (rating <= 0 || rating > 10) {
+        if (rating == null || rating <= 0 || rating > 10) {
             throw new IllegalStateException("Rating must be Between 0 and 10.");  // This message never actually gets returned to the user.
         }
         this.rating = rating;

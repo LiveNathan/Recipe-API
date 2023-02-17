@@ -5,6 +5,8 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import org.hibernate.annotations.OnDelete;
+import org.hibernate.annotations.OnDeleteAction;
 import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 
 import javax.persistence.*;
@@ -38,17 +40,26 @@ public class Recipe {
 
     private int averageRating;
 
-    @OneToMany(cascade = CascadeType.ALL)
+    @Builder.Default
+    @OneToMany(cascade = CascadeType.ALL, orphanRemoval = true)
+    @OnDelete(action = OnDeleteAction.CASCADE)
     @JoinColumn(name = "recipeId", nullable = false, foreignKey = @ForeignKey)
     private Collection<Ingredient> ingredients = new ArrayList<>();
 
-    @OneToMany(cascade = CascadeType.ALL)
+    @Builder.Default
+    @OneToMany(cascade = CascadeType.ALL, orphanRemoval = true)
+    @OnDelete(action = OnDeleteAction.CASCADE)
     @JoinColumn(name = "recipeId", nullable = false, foreignKey = @ForeignKey)
     private Collection<Step> steps = new ArrayList<>();
 
-    @OneToMany(cascade = CascadeType.ALL)
+    @Builder.Default
+    @OneToMany(cascade = CascadeType.ALL, orphanRemoval = true)
+    @OnDelete(action = OnDeleteAction.CASCADE)
     @JoinColumn(name = "recipeId", nullable = false, foreignKey = @ForeignKey)
     private Collection<Review> reviews = new ArrayList<>();
+
+//    @OneToMany(mappedBy = "recipe", cascade = CascadeType.ALL, orphanRemoval = true)
+//    private Collection<Review> reviews = new ArrayList<>();
 
     @Transient
     @JsonIgnore
@@ -71,12 +82,12 @@ public class Recipe {
         }
     }
 
-    @PostLoad
+    //    @PostPersist  // Cannot be used during testing.
     public void generateLocationURI() {
         try {
             locationURI = new URI(ServletUriComponentsBuilder.fromCurrentContextPath().path("/recipes/").path(String.valueOf(id)).toUriString());
         } catch (URISyntaxException e) {
-            // Exception stops here.
+            throw new IllegalStateException("Failed to generate location URI", e);
         }
     }
 }
