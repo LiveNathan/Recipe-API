@@ -1,5 +1,6 @@
 package cn.RecipeAPI.Models;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import lombok.*;
 
 import javax.persistence.*;
@@ -19,8 +20,10 @@ public class Review {
     @Column(nullable = false)
     private Long id;
 
-    @NotNull
-    private String username;
+    @ManyToOne(optional = false)
+    @JoinColumn
+    @JsonIgnore
+    private CustomUserDetails user;
 
     private Integer rating;
 
@@ -38,5 +41,8 @@ public class Review {
         this.rating = rating;
     }
 
+    public String getAuthor() {
+        return user.getUsername();
+    }
 
 }

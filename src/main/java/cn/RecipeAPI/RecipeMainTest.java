@@ -1,9 +1,6 @@
 package cn.RecipeAPI;
 
-import cn.RecipeAPI.Models.Ingredient;
-import cn.RecipeAPI.Models.Recipe;
-import cn.RecipeAPI.Models.Review;
-import cn.RecipeAPI.Models.Step;
+import cn.RecipeAPI.Models.*;
 import cn.RecipeAPI.Repositories.RecipeRepo;
 import cn.RecipeAPI.Services.RecipeService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -27,12 +24,21 @@ public class RecipeMainTest implements CommandLineRunner {
     public void run(String... args) throws Exception {
         System.out.println("STARTING WITH TEST DATABASE SETUP");
         if (recipeRepo.findAll().isEmpty()) {
+            // user for recipes
+            UserMeta userMeta = UserMeta.builder().email("nathanlively@gmail.com").name("Nathan").build();
+            Role role = Role.builder().role(Role.Roles.ROLE_USER).build();
+            Set<Role> roles = Set.of(role);
+            CustomUserDetails user = CustomUserDetails.builder().userMeta(userMeta).authorities(roles).build();
+
+            // user for reviews
+            UserMeta userMeta1 = UserMeta.builder().email("review@gmail.com").name("Review").build();
+            CustomUserDetails user1 = CustomUserDetails.builder().userMeta(userMeta1).authorities(roles).build();
 
             Ingredient ingredient = Ingredient.builder().name("flour").state("dry").amount("2 cups").build();
             Step step1 = Step.builder().description("put flour in bowl").stepNumber(1).build();
             Step step2 = Step.builder().description("eat it?").stepNumber(2).build();
 
-            Review review = Review.builder().description("tasted pretty bad").rating(2).username("idfk").build();
+            Review review = Review.builder().description("tasted pretty bad").rating(2).user(user1).build();
 
             Recipe recipe1 = Recipe.builder()
                     .name("test recipe")
@@ -41,7 +47,7 @@ public class RecipeMainTest implements CommandLineRunner {
                     .ingredients(Set.of(ingredient))
                     .steps(Set.of(step1, step2))
                     .reviews(Set.of(review))
-                    .username("bob")
+                    .user(user)
                     .build();
 
             recipeRepo.save(recipe1);
@@ -54,7 +60,7 @@ public class RecipeMainTest implements CommandLineRunner {
                     .name("another test recipe")
                     .difficultyRating(10)
                     .minutesToMake(2)
-                    .username("Sally")
+                    .user(user)
                     .build();
             recipeRepo.save(recipe2);
 //            recipeService.createNewRecipe(recipe2);
@@ -65,7 +71,7 @@ public class RecipeMainTest implements CommandLineRunner {
                     .name("another another test recipe")
                     .difficultyRating(5)
                     .minutesToMake(2)
-                    .username("Mark")
+                    .user(user)
                     .build();
 
             recipeRepo.save(recipe3);
@@ -80,9 +86,9 @@ public class RecipeMainTest implements CommandLineRunner {
                     .steps(Set.of(
                             Step.builder().stepNumber(1).description("eat both items together").build()))
                     .reviews(Set.of(
-                            Review.builder().username("ben").rating(10).description("this stuff is so good").build()
+                            Review.builder().user(user1).rating(10).description("this stuff is so good").build()
                     ))
-                    .username("Billy")
+                    .user(user)
                     .build();
 
             recipeRepo.save(recipe4);

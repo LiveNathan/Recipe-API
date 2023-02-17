@@ -45,7 +45,7 @@ public class ReviewService {
     }
 
     public List<Review> getReviewByUsername(String username) throws NoSuchReviewException {
-        List<Review> reviews = reviewRepo.findByUsername(username);
+        List<Review> reviews = reviewRepo.findByUser_UsernameIgnoreCase(username);
         if (reviews.isEmpty()) {
             throw new NoSuchReviewException("No reviews found for username " + username);
         }
@@ -54,7 +54,7 @@ public class ReviewService {
 
     public Recipe postNewReview(Review review, Long recipeId) throws NoSuchRecipeException, NoSuchReviewException, NoSelfReviewException, NoEmptyRatingException {
         Recipe recipe = recipeService.getRecipeById(recipeId);
-        if (Objects.equals(review.getUsername(), recipe.getUsername())) {
+        if (Objects.equals(review.getUser().getUsername(), recipe.getUser().getUsername())) {
             throw new NoSelfReviewException("Hold on there partner. You can't review your own recipe.");
         }
         if (review.getRating() == null) {

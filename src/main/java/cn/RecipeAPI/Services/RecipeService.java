@@ -1,12 +1,15 @@
 package cn.RecipeAPI.Services;
 
 import cn.RecipeAPI.Exceptions.NoSuchRecipeException;
+import cn.RecipeAPI.Models.CustomUserDetails;
 import cn.RecipeAPI.Models.Recipe;
 import cn.RecipeAPI.Models.Review;
 import cn.RecipeAPI.Repositories.RecipeRepo;
+import cn.RecipeAPI.Repositories.UserRepo;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.security.core.Authentication;
 
 import java.util.List;
 import java.util.Optional;
@@ -15,9 +18,13 @@ import java.util.Optional;
 public class RecipeService {
     @Autowired
     RecipeRepo recipeRepo;
+    @Autowired
+    UserRepo userRepo;
 
     @Transactional
-    public Recipe createNewRecipe(Recipe recipe) throws IllegalStateException {
+    public Recipe createNewRecipe(Recipe recipe, Authentication authentication) throws IllegalStateException {
+        CustomUserDetails userDetails = (CustomUserDetails) authentication.getPrincipal();
+        recipe.setUser(userRepo.getReferenceById(userDetails.getId()));
         recipe.validate();
         recipe = recipeRepo.save(recipe);
         recipe.generateLocationURI();
@@ -64,7 +71,7 @@ public class RecipeService {
     }
 
     public List<Recipe> getRecipesByUsername(String name) throws NoSuchRecipeException {
-        List<Recipe> matchingRecipes = recipeRepo.findByUsername(name);
+        List<Recipe> matchingRecipes = recipeRepo.findByUser_UsernameIgnoreCase(name);
         if (matchingRecipes.isEmpty()) {
             throw new NoSuchRecipeException("No recipes could be found from that username.");
         }

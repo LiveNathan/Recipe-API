@@ -17,7 +17,10 @@ public interface RecipeRepo extends JpaRepository<Recipe, Long> {
 
     List<Recipe> findByAverageRatingGreaterThanEqual(Integer rating);
 
-    List<Recipe> findByUsername(String name);
+//    List<Recipe> findByUsername(String name);
+
+    List<Recipe> findByUser_UsernameIgnoreCase(String username);
+
 
     @Modifying
     @Query(value = "truncate table ingredients; truncate table steps; truncate table reviews;", nativeQuery = true)
