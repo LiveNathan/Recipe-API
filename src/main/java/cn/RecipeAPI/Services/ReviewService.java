@@ -4,11 +4,14 @@ import cn.RecipeAPI.Exceptions.NoEmptyRatingException;
 import cn.RecipeAPI.Exceptions.NoSelfReviewException;
 import cn.RecipeAPI.Exceptions.NoSuchRecipeException;
 import cn.RecipeAPI.Exceptions.NoSuchReviewException;
+import cn.RecipeAPI.Models.CustomUserDetails;
 import cn.RecipeAPI.Models.Recipe;
 import cn.RecipeAPI.Models.Review;
 import cn.RecipeAPI.Repositories.RecipeRepo;
 import cn.RecipeAPI.Repositories.ReviewRepo;
+import cn.RecipeAPI.Repositories.UserRepo;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
@@ -26,6 +29,9 @@ public class ReviewService {
 
     @Autowired
     private RecipeRepo recipeRepo;
+
+    @Autowired
+    private UserRepo userRepo;
 
     public Review getReviewById(Long id) throws NoSuchReviewException {
         Optional<Review> review = reviewRepo.findById(id);
@@ -52,7 +58,9 @@ public class ReviewService {
         return reviews;
     }
 
-    public Recipe postNewReview(Review review, Long recipeId) throws NoSuchRecipeException, NoSuchReviewException, NoSelfReviewException, NoEmptyRatingException {
+    public Recipe postNewReview(Review review, Long recipeId, Authentication authentication) throws NoSuchRecipeException, NoSuchReviewException, NoSelfReviewException, NoEmptyRatingException {
+        CustomUserDetails userDetails = (CustomUserDetails) authentication.getPrincipal();
+        review.setUser(userRepo.getReferenceById(userDetails.getId()));
         Recipe recipe = recipeService.getRecipeById(recipeId);
         if (Objects.equals(review.getUser().getUsername(), recipe.getUser().getUsername())) {
             throw new NoSelfReviewException("Hold on there partner. You can't review your own recipe.");
@@ -99,5 +107,9 @@ public class ReviewService {
         Recipe recipe = recipeService.getRecipeByReview(reviewToUpdate);
         recipe.setAverageRating(calculateAverageRecipeRating(recipe.getId()));
         return reviewToUpdate;
+    }
+
+    public List<Review> getAllReviews() {
+        return reviewRepo.findAll();
     }
 }

@@ -24,9 +24,9 @@ public class SecurityConfig {
                 .authorizeRequests(auth -> auth
                         .antMatchers("/js/**", "/css/**", "/img/**", "/webjars/**", "/error/**").permitAll()
                         //allow all requests to read recipes and reviews
-                        .antMatchers(HttpMethod.GET, "/recipes/**", "/reviews").permitAll()
+                        .antMatchers(HttpMethod.GET, "/recipes/**", "/review/**").permitAll()
                         //allow creation of new recipes and reviews
-                        .antMatchers(HttpMethod.POST, "/recipes", "reviews").permitAll()
+                        .antMatchers(HttpMethod.POST, "/recipes", "review").permitAll()
                         // All creation of users
                         .antMatchers(HttpMethod.POST, "/user", "user").permitAll()
                         //all other requests should be authenticated

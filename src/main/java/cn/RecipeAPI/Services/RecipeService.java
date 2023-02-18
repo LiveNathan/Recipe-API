@@ -56,7 +56,7 @@ public class RecipeService {
 
     public Recipe getRecipeByReview(Review review) throws NoSuchRecipeException {
         Optional<Recipe> recipeOptional = recipeRepo.findByReviews_Id(review.getId());
-        if (recipeOptional.isEmpty()) {
+        if (recipeOptional.isEmpty()) {  // This always returns empty for some reason.
             throw new NoSuchRecipeException("No recipe could be found with that review.");
         }
         return recipeOptional.get();
@@ -105,12 +105,29 @@ public class RecipeService {
         }
     }
 
+    // Used for updated a recipe's average rating after a review is added.
     @Transactional
-    public Recipe updateRecipe(Recipe recipe, boolean forceIdCheck) throws NoSuchRecipeException {
+    public void updateRecipe(Recipe recipe, boolean forceIdCheck) throws NoSuchRecipeException {
         try {
             if (forceIdCheck) {
                 getRecipeById(recipe.getId());
             }
+            recipe.validate();
+            Recipe savedRecipe = recipeRepo.save(recipe);
+            savedRecipe.generateLocationURI();
+        } catch (NoSuchRecipeException e) {
+            throw new NoSuchRecipeException("Recipe ID not found. Maybe you meant to POST not PATCH?");
+        }
+    }
+
+    @Transactional
+    public Recipe updateRecipe(Recipe recipe, boolean forceIdCheck, Authentication authentication) throws NoSuchRecipeException {
+        try {
+            if (forceIdCheck) {
+                getRecipeById(recipe.getId());
+            }
+            CustomUserDetails userDetails = (CustomUserDetails) authentication.getPrincipal();
+            recipe.setUser(userRepo.getReferenceById(userDetails.getId()));
             recipe.validate();
             Recipe savedRecipe = recipeRepo.save(recipe);
             savedRecipe.generateLocationURI();

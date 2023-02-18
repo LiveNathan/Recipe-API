@@ -9,6 +9,8 @@ import java.util.List;
 import java.util.Optional;
 
 public interface RecipeRepo extends JpaRepository<Recipe, Long> {
+//    @Query("select r from Recipe r inner join r.reviews reviews where reviews.id = ?1")
+//    Optional<Recipe> findByReviews_Id(Long id);
     Optional<Recipe> findByReviews_Id(Long id);
 
     List<Recipe> findByNameContainingIgnoreCase(String name);
@@ -25,7 +27,6 @@ public interface RecipeRepo extends JpaRepository<Recipe, Long> {
     @Modifying
     @Query(value = "truncate table ingredients; truncate table steps; truncate table reviews;", nativeQuery = true)
     void truncateIngredientsStepsReviews();
-
 
 
 //    Recipe findByReviewContains(Review review);

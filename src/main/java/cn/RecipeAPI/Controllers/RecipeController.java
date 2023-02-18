@@ -101,11 +101,11 @@ public class RecipeController {
         }
     }
 
-    @PutMapping
+    @PatchMapping
     @PreAuthorize("hasPermission(#updatedRecipe.id, 'Recipe', 'edit')")
-    public ResponseEntity<?> updateRecipe(@RequestBody Recipe updatedRecipe) {
+    public ResponseEntity<?> updateRecipe(@RequestBody Recipe updatedRecipe, Authentication authentication) {
         try {
-            Recipe returnUpdatedRecipe = recipeService.updateRecipe(updatedRecipe, true);
+            Recipe returnUpdatedRecipe = recipeService.updateRecipe(updatedRecipe, true, authentication);
             return ResponseEntity.ok(returnUpdatedRecipe);
         } catch (NoSuchRecipeException | IllegalStateException e) {
             return ResponseEntity.badRequest().body(e.getMessage());

@@ -21,6 +21,12 @@ public class ReviewController {
     @Autowired
     ReviewService reviewService;
 
+    @GetMapping("/")
+    public ResponseEntity<?> getAllReviews() {
+        List<Review> reviews = reviewService.getAllReviews();
+        return ResponseEntity.ok(reviews);
+    }
+
     @GetMapping("/{id}")
     public ResponseEntity<?> getReviewById(@PathVariable("id") Long id) {
         try {
@@ -54,7 +60,7 @@ public class ReviewController {
     @PostMapping("/{recipeId}")
     public ResponseEntity<?> postNewReview(@RequestBody Review review, @PathVariable("recipeId") Long recipeId, Authentication authentication) {
         try {
-            Recipe insertedRecipe = reviewService.postNewReview(review, recipeId);
+            Recipe insertedRecipe = reviewService.postNewReview(review, recipeId, authentication);
             return ResponseEntity.created(insertedRecipe.getLocationURI()).body(insertedRecipe);
         } catch (NoEmptyRatingException | NoSelfReviewException | NoSuchReviewException | NoSuchRecipeException e) {
             return ResponseEntity.badRequest().body(e.getMessage());
