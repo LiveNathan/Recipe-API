@@ -25,14 +25,14 @@ public class RecipeMainTest implements CommandLineRunner {
         System.out.println("STARTING WITH TEST DATABASE SETUP");
         if (recipeRepo.findAll().isEmpty()) {
             // user for recipes
-            UserMeta userMeta = UserMeta.builder().email("nathanlively@gmail.com").name("Nathan").build();
+            UserMeta userMeta = UserMeta.builder().email("recipe1@gmail.com").name("Nathan").build();
             Role role = Role.builder().role(Role.Roles.ROLE_USER).build();
             Set<Role> roles = Set.of(role);
-            CustomUserDetails user = CustomUserDetails.builder().userMeta(userMeta).authorities(roles).build();
+            CustomUserDetails user = CustomUserDetails.builder().userMeta(userMeta).username("userRecipe1").password("1234").authorities(roles).build();
 
             // user for reviews
-            UserMeta userMeta1 = UserMeta.builder().email("review@gmail.com").name("Review").build();
-            CustomUserDetails user1 = CustomUserDetails.builder().userMeta(userMeta1).authorities(roles).build();
+            UserMeta userMeta1 = UserMeta.builder().email("review1@gmail.com").name("Review").build();
+            CustomUserDetails user1 = CustomUserDetails.builder().userMeta(userMeta1).username("userReview1").password("1234").authorities(roles).build();
 
             Ingredient ingredient = Ingredient.builder().name("flour").state("dry").amount("2 cups").build();
             Step step1 = Step.builder().description("put flour in bowl").stepNumber(1).build();

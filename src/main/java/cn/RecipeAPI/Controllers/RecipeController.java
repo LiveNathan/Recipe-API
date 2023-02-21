@@ -22,7 +22,6 @@ public class RecipeController {
     public ResponseEntity<?> createNewRecipe(@RequestBody Recipe recipe, Authentication authentication) {
         try {
             Recipe insertedRecipe = recipeService.createNewRecipe(recipe, authentication);
-//            insertedRecipe.generateLocationURI();
             return ResponseEntity.created(insertedRecipe.getLocationURI()).body(insertedRecipe);
         } catch (IllegalStateException e) {
             return ResponseEntity.badRequest().body(e.getMessage());
