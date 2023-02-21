@@ -3,6 +3,7 @@ package cn.RecipeAPI;
 import cn.RecipeAPI.Controllers.RecipeController;
 import cn.RecipeAPI.Exceptions.NoSuchRecipeException;
 import cn.RecipeAPI.Models.*;
+import cn.RecipeAPI.Security.SecurityConfig;
 import cn.RecipeAPI.Services.RecipeService;
 import org.junit.jupiter.api.MethodOrderer;
 import org.junit.jupiter.api.Order;
@@ -12,10 +13,12 @@ import org.mockito.ArgumentMatchers;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.context.annotation.Import;
 import org.springframework.http.MediaType;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.security.test.context.support.WithUserDetails;
+import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.web.servlet.MockMvc;
 
 import java.net.URI;
@@ -28,15 +31,15 @@ import static org.hamcrest.Matchers.containsString;
 import static org.hamcrest.Matchers.hasSize;
 import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.when;
-import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.user;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
 
 @WebMvcTest(RecipeController.class)
-//@ActiveProfiles(profiles = "test")
+@ActiveProfiles(profiles = "test")
 @TestMethodOrder(MethodOrderer.OrderAnnotation.class)
+@Import(SecurityConfig.class)
 public class RecipeApiApplicationTests {
 
     @Autowired
@@ -44,12 +47,6 @@ public class RecipeApiApplicationTests {
 
     @MockBean
     private RecipeService recipeService;
-
-//    @SpyBean(name = "customUserDetailsService")
-//    private CustomUserDetailsService customUserDetailsService;
-
-//    @MockBean
-//    private UserRepo userRepo;
 
     // Create some test users
     // user for recipes
@@ -173,11 +170,11 @@ public class RecipeApiApplicationTests {
 
     @Test
     @Order(4)
-//    @WithUserDetails(value = "userRecipe", userDetailsServiceBeanName = "customUserDetailsService")
+    @WithMockUser("userRecipe")
     public void testCreateNewRecipeSuccessBehavior() throws Exception {
         when(recipeService.createNewRecipe(any(Recipe.class), any(Authentication.class))).thenReturn(recipe);
 
-        mockMvc.perform(post("/recipes").with(user(userRecipe))
+        mockMvc.perform(post("/recipes")//.with(user(userRecipe))
                         //set request Content-Type header
                         .contentType("application/json")
                         //set HTTP body equal to JSON based on recipe object
@@ -200,11 +197,11 @@ public class RecipeApiApplicationTests {
 
                 //confirm step data
                 .andExpect(jsonPath("steps", hasSize(1)))
-//                .andExpect(jsonPath("steps[0]").isNotEmpty())
+                .andExpect(jsonPath("steps[0]").isNotEmpty())
 
                 //confirm review data
                 .andExpect(jsonPath("reviews", hasSize(1)))
-                .andExpect(jsonPath("reviews[0].username").value("idk"));
+                .andExpect(jsonPath("reviews[0].author").value("userReview"));
     }
 
     @Test

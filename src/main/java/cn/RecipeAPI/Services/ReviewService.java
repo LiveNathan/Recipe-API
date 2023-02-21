@@ -89,9 +89,9 @@ public class ReviewService {
         if (review == null) {
             throw new NoSuchReviewException("The review you are trying to delete does not exist.");
         }
+        Recipe recipe = recipeService.getRecipeByReview(review);
         reviewRepo.deleteById(id);
 
-        Recipe recipe = recipeService.getRecipeByReview(review);
         recipe.setAverageRating(calculateAverageRecipeRating(recipe.getId()));
         return review;
     }
