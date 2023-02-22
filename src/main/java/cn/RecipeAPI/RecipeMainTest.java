@@ -11,7 +11,7 @@ import org.springframework.context.annotation.Profile;
 import java.util.Set;
 
 @SpringBootApplication
-@Profile("test-repo")  // Changing this name temporarily mocking
+@Profile("test")  // Changing this name temporarily mocking
 public class RecipeMainTest implements CommandLineRunner {
 
     @Autowired

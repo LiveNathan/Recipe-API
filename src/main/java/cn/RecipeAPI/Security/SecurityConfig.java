@@ -28,7 +28,7 @@ public class SecurityConfig {
                         //allow all requests to read recipes and reviews
                         .antMatchers(HttpMethod.GET, "/recipes/**", "/review/**").permitAll()
                         //allow creation of new recipes and reviews
-                        .antMatchers(HttpMethod.POST, "/recipes", "/review").permitAll()  // Why don't we need /** for POST requests?
+                        .antMatchers(HttpMethod.POST, "/recipes", "/review").permitAll()
                         // All creation of users
                         .antMatchers(HttpMethod.POST, "/user", "user").permitAll()
                         //all other requests should be authenticated

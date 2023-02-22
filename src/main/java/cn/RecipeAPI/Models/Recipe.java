@@ -95,6 +95,9 @@ public class Recipe {
     }
 
     public String getAuthor() {
+        if (user.getUsername() == null) {
+            return null;
+        }
         return user.getUsername();
     }
 }

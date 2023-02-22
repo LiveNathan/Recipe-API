@@ -17,7 +17,6 @@ import org.springframework.context.annotation.Import;
 import org.springframework.http.MediaType;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.test.context.support.WithMockUser;
-import org.springframework.security.test.context.support.WithUserDetails;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.web.servlet.MockMvc;
 
@@ -89,8 +88,6 @@ public class RecipeApiApplicationTests {
 
     @Order(1)
     @Test
-//    @WithMockUser
-//    @WithAnonymousUser
     public void testGetRecipeByIdSuccessBehavior() throws Exception {
         final long recipeId = 1;
 
@@ -111,7 +108,6 @@ public class RecipeApiApplicationTests {
 
     @Order(2)
     @Test
-    @WithMockUser
     public void testGetRecipeByIdFailureBehavior() throws Exception {
         final long recipeId = 5000;
         when(recipeService.getRecipeById(ArgumentMatchers.any())).thenThrow(new NoSuchRecipeException("No recipe with ID " + recipeId + " could be found."));
@@ -128,7 +124,6 @@ public class RecipeApiApplicationTests {
 
     @Order(3)
     @Test
-    @WithMockUser
     public void testGetAllRecipesSuccessBehavior() throws Exception {
         when(recipeService.getAllRecipes()).thenReturn(recipes);
 
@@ -155,7 +150,6 @@ public class RecipeApiApplicationTests {
     @Test
     //make sure this test runs last
     @Order(11)
-    @WithMockUser
     public void testGetAllRecipesFailureBehavior() throws Exception {
         when(recipeService.getAllRecipes()).thenThrow(new NoSuchRecipeException("No recipes could be found."));
 
@@ -206,7 +200,7 @@ public class RecipeApiApplicationTests {
 
     @Test
     @Order(5)
-    @WithUserDetails("userRecipe")
+    @WithMockUser("userRecipe")
     public void testCreateNewRecipeFailureBehavior() throws Exception {
         when(recipeService.createNewRecipe(any(Recipe.class), any(Authentication.class))).thenThrow(new IllegalStateException("No recipe could be created."));
 
@@ -214,7 +208,7 @@ public class RecipeApiApplicationTests {
         mockMvc.perform(
                         post("/recipes")
                                 //set body equal to empty recipe object
-                                .content(TestUtil.convertObjectToJsonBytes(Recipe.builder().build()))
+                                .content(TestUtil.convertObjectToJsonBytes(recipe))  // Using an empty Recipe object threw a nullPointerException.
                                 //set Content-Type header
                                 .contentType("application/json")
                 )
@@ -256,7 +250,7 @@ public class RecipeApiApplicationTests {
     // Delete Recipe End Point
     @Test
     @Order(8)
-    @WithUserDetails("userRecipe")
+    @WithMockUser("userRecipe")
     public void testDeleteRecipeByIdSuccessBehavior() throws Exception {
         when(recipeService.deleteRecipeById(anyLong())).thenReturn(recipe);
 
@@ -270,7 +264,7 @@ public class RecipeApiApplicationTests {
 
     @Test
     @Order(9)
-    @WithUserDetails("userRecipe")
+    @WithMockUser("userRecipe")
     public void testDeleteRecipeByIdFailureBehavior() throws Exception {
         when(recipeService.deleteRecipeById(anyLong())).thenThrow(new NoSuchRecipeException("No recipe could be found."));
 
