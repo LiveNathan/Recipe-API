@@ -6,6 +6,8 @@ import cn.RecipeAPI.Services.RecipeService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -17,10 +19,9 @@ public class RecipeController {
     RecipeService recipeService;
 
     @PostMapping
-    public ResponseEntity<?> createNewRecipe(@RequestBody Recipe recipe) {
+    public ResponseEntity<?> createNewRecipe(@RequestBody Recipe recipe, Authentication authentication) {
         try {
-            Recipe insertedRecipe = recipeService.createNewRecipe(recipe);
-//            insertedRecipe.generateLocationURI();
+            Recipe insertedRecipe = recipeService.createNewRecipe(recipe, authentication);
             return ResponseEntity.created(insertedRecipe.getLocationURI()).body(insertedRecipe);
         } catch (IllegalStateException e) {
             return ResponseEntity.badRequest().body(e.getMessage());
@@ -79,6 +80,7 @@ public class RecipeController {
 
 
     @DeleteMapping("/{id}")
+    @PreAuthorize("hasPermission(#id, 'Recipe', 'delete')")
     public ResponseEntity<?> deleteRecipeById(@PathVariable("id") Long id) {
         try {
             Recipe deletedRecipe = recipeService.deleteRecipeById(id);
@@ -98,10 +100,11 @@ public class RecipeController {
         }
     }
 
-    @PutMapping
-    public ResponseEntity<?> updateRecipe(@RequestBody Recipe updatedRecipe) {
+    @PatchMapping
+    @PreAuthorize("hasPermission(#updatedRecipe.id, 'Recipe', 'edit')")
+    public ResponseEntity<?> updateRecipe(@RequestBody Recipe updatedRecipe, Authentication authentication) {
         try {
-            Recipe returnUpdatedRecipe = recipeService.updateRecipe(updatedRecipe, true);
+            Recipe returnUpdatedRecipe = recipeService.updateRecipe(updatedRecipe, true, authentication);
             return ResponseEntity.ok(returnUpdatedRecipe);
         } catch (NoSuchRecipeException | IllegalStateException e) {
             return ResponseEntity.badRequest().body(e.getMessage());

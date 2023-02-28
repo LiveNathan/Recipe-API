@@ -27,7 +27,10 @@ public class Recipe {
     @Column
     private Long id;
 
-    private String username;  // User who submitted the recipe.
+    @ManyToOne(optional = false)
+    @JoinColumn
+    @JsonIgnore
+    private CustomUserDetails user;
 
     @Column(nullable = false)
     private String name;
@@ -89,5 +92,12 @@ public class Recipe {
         } catch (URISyntaxException e) {
             throw new IllegalStateException("Failed to generate location URI", e);
         }
+    }
+
+    public String getAuthor() {
+        if (user.getUsername() == null) {
+            return null;
+        }
+        return user.getUsername();
     }
 }

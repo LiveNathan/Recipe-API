@@ -2,10 +2,8 @@ package cn.RecipeAPI;
 
 import cn.RecipeAPI.Controllers.RecipeController;
 import cn.RecipeAPI.Exceptions.NoSuchRecipeException;
-import cn.RecipeAPI.Models.Ingredient;
-import cn.RecipeAPI.Models.Recipe;
-import cn.RecipeAPI.Models.Review;
-import cn.RecipeAPI.Models.Step;
+import cn.RecipeAPI.Models.*;
+import cn.RecipeAPI.Security.SecurityConfig;
 import cn.RecipeAPI.Services.RecipeService;
 import org.junit.jupiter.api.MethodOrderer;
 import org.junit.jupiter.api.Order;
@@ -15,9 +13,11 @@ import org.mockito.ArgumentMatchers;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.context.annotation.Import;
 import org.springframework.http.MediaType;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.context.ActiveProfiles;
-import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.web.servlet.MockMvc;
 
 import java.net.URI;
@@ -34,20 +34,40 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
+
 @WebMvcTest(RecipeController.class)
-@ContextConfiguration(classes = RecipeApiApplication.class)
 @ActiveProfiles(profiles = "test")
 @TestMethodOrder(MethodOrderer.OrderAnnotation.class)
+@Import(SecurityConfig.class)
 public class RecipeApiApplicationTests {
+
+    @Autowired
+    private MockMvc mockMvc;
+
+    @MockBean
+    private RecipeService recipeService;
+
+    // Create some test users
+    // user for recipes
+    UserMeta userMeta = UserMeta.builder().email("recipe@gmail.com").name("recipeUser1").build();
+    Role role = Role.builder().role(Role.Roles.ROLE_USER).build();
+    Set<Role> roles = Set.of(role);
+    CustomUserDetails userRecipe = CustomUserDetails.builder().userMeta(userMeta).username("userRecipe").password("1234").authorities(roles).build();
+    // user for reviews
+    UserMeta userMeta1 = UserMeta.builder().email("review@gmail.com").name("reviewUser").build();
+    CustomUserDetails userReview = CustomUserDetails.builder().userMeta(userMeta1).username("userReview").password("1234").authorities(roles).build();
+
     // Create some test recipes
-    Review review = Review.builder().description("was just caramel").rating(3).username("idk").build();
-    Review review2 = Review.builder().description("was just egg").rating(4).username("idk").build();
+    Review review = Review.builder().description("was just caramel").rating(3).user(userReview).build();
+    Review review2 = Review.builder().description("was just egg").rating(4).user(userReview).build();
+
     Recipe recipe = Recipe.builder().name("test name").difficultyRating(1).minutesToMake(5)
             .ingredients(Set.of(Ingredient.builder().name("spam").amount("1 can").build()))
             .steps(Set.of(Step.builder().stepNumber(1).description("eat spam").build()))
             .locationURI(new URI("http://localhost:8080/recipes/1"))
             .reviews(Set.of(review))
             .id(1L)
+            .user(userRecipe)
             .build();
     Recipe recipe2 = Recipe.builder().name("test name2").difficultyRating(2).minutesToMake(6)
             .ingredients(Set.of(Ingredient.builder().name("egg").amount("1 egg").build()))
@@ -55,12 +75,9 @@ public class RecipeApiApplicationTests {
             .locationURI(new URI("http://localhost:8080/recipes/2"))
             .reviews(Set.of(review2))
             .id(2L)
+            .user(userRecipe)
             .build();
     ArrayList<Recipe> recipes = new ArrayList<>(Arrays.asList(recipe, recipe2));
-    @Autowired
-    private MockMvc mockMvc;
-    @MockBean
-    private RecipeService recipeService;
 
     public RecipeApiApplicationTests() throws URISyntaxException {
     }
@@ -75,7 +92,7 @@ public class RecipeApiApplicationTests {
         final long recipeId = 1;
 
         // When getRecipeById is called with any long id, it should return a recipe
-        when(recipeService.getRecipeById(anyLong())).thenReturn(recipe);
+        when(recipeService.getRecipeById(recipeId)).thenReturn(recipe);
 
         // Test the GET /recipe/{recipeId} route
         mockMvc.perform(get("/recipes/" + recipeId))
@@ -87,14 +104,6 @@ public class RecipeApiApplicationTests {
                 .andExpect(content().contentType(MediaType.APPLICATION_JSON_VALUE))
                 // expect the JSON to be the same as the one returned by the service
                 .andExpect(content().string(TestUtil.convertObjectToJsonString(recipe)));
-
-        //confirm returned JSON values
-//                .andExpect(jsonPath("id").value(recipeId))
-//                .andExpect(jsonPath("minutesToMake").value(2))
-//                .andExpect(jsonPath("reviews", hasSize(1)))
-//                .andExpect(jsonPath("ingredients", hasSize(1)))
-//                .andExpect(jsonPath("steps", hasSize(2)))
-//                .andExpect(jsonPath("username").value("bob"));
     }
 
     @Order(2)
@@ -155,10 +164,11 @@ public class RecipeApiApplicationTests {
 
     @Test
     @Order(4)
+    @WithMockUser("userRecipe")
     public void testCreateNewRecipeSuccessBehavior() throws Exception {
-        when(recipeService.createNewRecipe(any(Recipe.class))).thenReturn(recipe);
+        when(recipeService.createNewRecipe(any(Recipe.class), any(Authentication.class))).thenReturn(recipe);
 
-        mockMvc.perform(post("/recipes")
+        mockMvc.perform(post("/recipes")//.with(user(userRecipe))
                         //set request Content-Type header
                         .contentType("application/json")
                         //set HTTP body equal to JSON based on recipe object
@@ -185,19 +195,20 @@ public class RecipeApiApplicationTests {
 
                 //confirm review data
                 .andExpect(jsonPath("reviews", hasSize(1)))
-                .andExpect(jsonPath("reviews[0].username").value("idk"));
+                .andExpect(jsonPath("reviews[0].author").value("userReview"));
     }
 
     @Test
     @Order(5)
+    @WithMockUser("userRecipe")
     public void testCreateNewRecipeFailureBehavior() throws Exception {
-        when(recipeService.createNewRecipe(any(Recipe.class))).thenThrow(new IllegalStateException("No recipe could be created."));
+        when(recipeService.createNewRecipe(any(Recipe.class), any(Authentication.class))).thenThrow(new IllegalStateException("No recipe could be created."));
 
         //force failure with empty Recipe object
         mockMvc.perform(
                         post("/recipes")
                                 //set body equal to empty recipe object
-                                .content(TestUtil.convertObjectToJsonBytes(Recipe.builder().build()))
+                                .content(TestUtil.convertObjectToJsonBytes(recipe))  // Using an empty Recipe object threw a nullPointerException.
                                 //set Content-Type header
                                 .contentType("application/json")
                 )
@@ -239,6 +250,7 @@ public class RecipeApiApplicationTests {
     // Delete Recipe End Point
     @Test
     @Order(8)
+    @WithMockUser("userRecipe")
     public void testDeleteRecipeByIdSuccessBehavior() throws Exception {
         when(recipeService.deleteRecipeById(anyLong())).thenReturn(recipe);
 
@@ -252,6 +264,7 @@ public class RecipeApiApplicationTests {
 
     @Test
     @Order(9)
+    @WithMockUser("userRecipe")
     public void testDeleteRecipeByIdFailureBehavior() throws Exception {
         when(recipeService.deleteRecipeById(anyLong())).thenThrow(new NoSuchRecipeException("No recipe could be found."));
 

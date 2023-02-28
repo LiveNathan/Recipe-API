@@ -1,12 +1,15 @@
 package cn.RecipeAPI.Services;
 
 import cn.RecipeAPI.Exceptions.NoSuchRecipeException;
+import cn.RecipeAPI.Models.CustomUserDetails;
 import cn.RecipeAPI.Models.Recipe;
 import cn.RecipeAPI.Models.Review;
 import cn.RecipeAPI.Repositories.RecipeRepo;
+import cn.RecipeAPI.Repositories.UserRepo;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.security.core.Authentication;
 
 import java.util.List;
 import java.util.Optional;
@@ -15,9 +18,13 @@ import java.util.Optional;
 public class RecipeService {
     @Autowired
     RecipeRepo recipeRepo;
+    @Autowired
+    UserRepo userRepo;
 
     @Transactional
-    public Recipe createNewRecipe(Recipe recipe) throws IllegalStateException {
+    public Recipe createNewRecipe(Recipe recipe, Authentication authentication) throws IllegalStateException {
+        CustomUserDetails userDetails = (CustomUserDetails) authentication.getPrincipal();
+        recipe.setUser(userRepo.getReferenceById(userDetails.getId()));
         recipe.validate();
         recipe = recipeRepo.save(recipe);
         recipe.generateLocationURI();
@@ -49,7 +56,7 @@ public class RecipeService {
 
     public Recipe getRecipeByReview(Review review) throws NoSuchRecipeException {
         Optional<Recipe> recipeOptional = recipeRepo.findByReviews_Id(review.getId());
-        if (recipeOptional.isEmpty()) {
+        if (recipeOptional.isEmpty()) {  // This always returns empty for some reason.
             throw new NoSuchRecipeException("No recipe could be found with that review.");
         }
         return recipeOptional.get();
@@ -64,7 +71,7 @@ public class RecipeService {
     }
 
     public List<Recipe> getRecipesByUsername(String name) throws NoSuchRecipeException {
-        List<Recipe> matchingRecipes = recipeRepo.findByUsername(name);
+        List<Recipe> matchingRecipes = recipeRepo.findByUser_UsernameIgnoreCase(name);
         if (matchingRecipes.isEmpty()) {
             throw new NoSuchRecipeException("No recipes could be found from that username.");
         }
@@ -98,12 +105,29 @@ public class RecipeService {
         }
     }
 
+    // Used for updated a recipe's average rating after a review is added.
     @Transactional
-    public Recipe updateRecipe(Recipe recipe, boolean forceIdCheck) throws NoSuchRecipeException {
+    public void updateRecipe(Recipe recipe, boolean forceIdCheck) throws NoSuchRecipeException {
         try {
             if (forceIdCheck) {
                 getRecipeById(recipe.getId());
             }
+            recipe.validate();
+            Recipe savedRecipe = recipeRepo.save(recipe);
+            savedRecipe.generateLocationURI();
+        } catch (NoSuchRecipeException e) {
+            throw new NoSuchRecipeException("Recipe ID not found. Maybe you meant to POST not PATCH?");
+        }
+    }
+
+    @Transactional
+    public Recipe updateRecipe(Recipe recipe, boolean forceIdCheck, Authentication authentication) throws NoSuchRecipeException {
+        try {
+            if (forceIdCheck) {
+                getRecipeById(recipe.getId());
+            }
+            CustomUserDetails userDetails = (CustomUserDetails) authentication.getPrincipal();
+            recipe.setUser(userRepo.getReferenceById(userDetails.getId()));
             recipe.validate();
             Recipe savedRecipe = recipeRepo.save(recipe);
             savedRecipe.generateLocationURI();
