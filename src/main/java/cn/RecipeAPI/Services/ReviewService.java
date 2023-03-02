@@ -10,9 +10,15 @@ import cn.RecipeAPI.Models.Review;
 import cn.RecipeAPI.Repositories.RecipeRepo;
 import cn.RecipeAPI.Repositories.ReviewRepo;
 import cn.RecipeAPI.Repositories.UserRepo;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.CachePut;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -33,6 +39,10 @@ public class ReviewService {
     @Autowired
     private UserRepo userRepo;
 
+    // eHcache doc says a logger is necessary?
+    Logger logger = LoggerFactory.getLogger(ReviewService.class);
+
+    @Cacheable(value = "reviews")
     public Review getReviewById(Long id) throws NoSuchReviewException {
         Optional<Review> review = reviewRepo.findById(id);
         if (review.isEmpty()) {
@@ -58,6 +68,8 @@ public class ReviewService {
         return reviews;
     }
 
+    @Transactional
+//    @CachePut(cacheNames = "reviews", key = "#review.id")  // Using this annotation seems to return a null id.
     public Recipe postNewReview(Review review, Long recipeId, Authentication authentication) throws NoSuchRecipeException, NoSuchReviewException, NoSelfReviewException, NoEmptyRatingException {
         CustomUserDetails userDetails = (CustomUserDetails) authentication.getPrincipal();
         review.setUser(userRepo.getReferenceById(userDetails.getId()));
@@ -84,6 +96,8 @@ public class ReviewService {
         return (int) Math.round(averageRating);
     }
 
+    @Transactional
+    @CacheEvict(value = "reviews")
     public Review deleteReviewById(Long id) throws NoSuchReviewException, NoSuchRecipeException {
         Review review = getReviewById(id);
         if (review == null) {
@@ -96,8 +110,11 @@ public class ReviewService {
         return review;
     }
 
-    public Review updateReviewById(Review reviewToUpdate) throws NoSuchReviewException, NoSuchRecipeException {
+    @CachePut(cacheNames = "reviews", key = "#reviewToUpdate.id")
+    public Review updateReviewById(Review reviewToUpdate, Authentication authentication) throws NoSuchReviewException, NoSuchRecipeException {
         try {
+            CustomUserDetails userDetails = (CustomUserDetails) authentication.getPrincipal();
+            reviewToUpdate.setUser(userRepo.getReferenceById(userDetails.getId()));
             Review review = getReviewById(reviewToUpdate.getId());  // I think this verifies that the review exists.
         } catch (NoSuchReviewException e) {
             throw new NoSuchReviewException("Cannot find this review. Maybe you mean to update?");

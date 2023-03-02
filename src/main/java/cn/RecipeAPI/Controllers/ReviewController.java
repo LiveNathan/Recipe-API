@@ -80,9 +80,9 @@ public class ReviewController {
 
     @PatchMapping
     @PreAuthorize("hasPermission(#reviewToUpdate.id, 'Review', 'edit')")
-    public ResponseEntity<?> updateReviewById(@RequestBody Review reviewToUpdate) {
+    public ResponseEntity<?> updateReviewById(@RequestBody Review reviewToUpdate, Authentication authentication) {
         try {
-            Review review = reviewService.updateReviewById(reviewToUpdate);
+            Review review = reviewService.updateReviewById(reviewToUpdate, authentication);
             return ResponseEntity.ok(review);
         } catch (NoSuchRecipeException | NoSuchReviewException e) {
             return ResponseEntity.badRequest().body(e.getMessage());
