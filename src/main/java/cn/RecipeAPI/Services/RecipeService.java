@@ -6,22 +6,38 @@ import cn.RecipeAPI.Models.Recipe;
 import cn.RecipeAPI.Models.Review;
 import cn.RecipeAPI.Repositories.RecipeRepo;
 import cn.RecipeAPI.Repositories.UserRepo;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.cache.CacheManager;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.CachePut;
+import org.springframework.cache.annotation.Cacheable;
+import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.security.core.Authentication;
 
 import java.util.List;
 import java.util.Optional;
 
 @Service
 public class RecipeService {
+
     @Autowired
     RecipeRepo recipeRepo;
+
     @Autowired
     UserRepo userRepo;
 
+    // can be used to inspect the cache during debug
+    @Autowired
+    CacheManager cacheManager;
+
+    // eHcache doc says a logger is necessary?
+    Logger logger = LoggerFactory.getLogger(RecipeService.class);
+
     @Transactional
+    @CachePut(cacheNames = "recipes", key = "#recipe.id")
     public Recipe createNewRecipe(Recipe recipe, Authentication authentication) throws IllegalStateException {
         CustomUserDetails userDetails = (CustomUserDetails) authentication.getPrincipal();
         recipe.setUser(userRepo.getReferenceById(userDetails.getId()));
@@ -31,6 +47,7 @@ public class RecipeService {
         return recipe;
     }
 
+    @Cacheable(value = "recipes")
     public Recipe getRecipeById(Long id) throws NoSuchRecipeException {
         Optional<Recipe> recipeOptional = recipeRepo.findById(id);
         if (recipeOptional.isEmpty()) {
@@ -41,6 +58,7 @@ public class RecipeService {
         return recipe;
     }
 
+    //    @Cacheable(value = "recipes")  // ehCahe cannot be used with a string key
     public List<Recipe> getRecipesByName(String name) throws NoSuchRecipeException {
         List<Recipe> matchingRecipes = recipeRepo.findByNameContainingIgnoreCase(name);
         if (matchingRecipes.isEmpty()) {
@@ -78,6 +96,7 @@ public class RecipeService {
         return matchingRecipes;
     }
 
+    //    @Cacheable(value = "recipes")
     public List<Recipe> getAllRecipes() throws NoSuchRecipeException {
         List<Recipe> recipes = recipeRepo.findAll();
         if (recipes.isEmpty()) {
@@ -95,6 +114,7 @@ public class RecipeService {
     }
 
     @Transactional
+    @CacheEvict(value = "recipes")
     public Recipe deleteRecipeById(Long id) throws NoSuchRecipeException {
         try {
             Recipe recipe = getRecipeById(id);
@@ -107,6 +127,7 @@ public class RecipeService {
 
     // Used for updated a recipe's average rating after a review is added.
     @Transactional
+    @CachePut(cacheNames = "recipes", key = "#recipe.id")
     public void updateRecipe(Recipe recipe, boolean forceIdCheck) throws NoSuchRecipeException {
         try {
             if (forceIdCheck) {
@@ -121,6 +142,7 @@ public class RecipeService {
     }
 
     @Transactional
+    @CachePut(cacheNames = "recipes", key = "#recipe.id")
     public Recipe updateRecipe(Recipe recipe, boolean forceIdCheck, Authentication authentication) throws NoSuchRecipeException {
         try {
             if (forceIdCheck) {
